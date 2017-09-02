@@ -6,10 +6,10 @@ public class ConeOFFire : MonoBehaviour {
 
 	private int numRays = 4;
 
-	private float coneDistance = 50f;
+	private float coneDistance = 10f;
 
 	[Range (0, 180)]
-	private float coneAngle = 45f;
+	private float coneAngle = 50f;
 
 	private float[,] sinCos;
 
@@ -17,9 +17,6 @@ public class ConeOFFire : MonoBehaviour {
 
 	public MeshFilter viewMeshFilter;
 	Mesh viewMesh;
-
-	private Vector3 bottomLeftPoint;
-	private Vector3 topRightPoint;
 
 	private List<Vector3> endPoints = new List<Vector3> ();
 	// Use this for initialization
@@ -31,51 +28,52 @@ public class ConeOFFire : MonoBehaviour {
 		viewMesh.name = "Cone Mesh";
 		viewMeshFilter.mesh = viewMesh;
 		this.updateSinCos (this.ConeAngle, this.NumRays);
-		this.updateBox ();
 	}
 	
 	// Update is called once per frame
-	void Update () {
+	void LateUpdate () {
 
-		Vector3 worldBotLeft = this.transform.TransformPoint (this.bottomLeftPoint);
-		Vector3 worldTopRight = this.transform.TransformPoint (this.topRightPoint);
-
-		Debug.DrawLine (worldBotLeft, worldTopRight);
-
-
-//		Vector3 worldBotRight = this.transform.TransformPoint (new Vector3 (this.topRightPoint.x, 0, 0));
-//		Vector3 worldTopLeft = this.transform.TransformPoint (new Vector3 (-this.topRightPoint.x, this.ConeDistance, 0));
-//		Debug.DrawLine (worldTopRight, worldTopLeft, Color.red);
-//		Debug.DrawLine (worldTopLeft, worldBotLeft, Color.red);
-//		Debug.DrawLine (worldBotLeft, worldBotRight, Color.red);
-//		Debug.DrawLine (worldBotRight, worldTopRight, Color.red);
-
-		this.castRays ();
-
+//		float width = Mathf.Tan (this.coneAngle * Mathf.Deg2Rad) * this.ConeDistance;
+//		float height = this.coneDistance;
+//
+//		Debug.Log ("width:" + width + " height:" + height);
+//
+//		bool widthIsSmaller = true;
+//		float boxSize = width;
+//
+//		float boxes = height / width;
+//
+//		if (height < width) {
+//			boxSize = height;
+//			boxes = width / height;
+//			Debug.Log ("height is smaller: " + boxes);
+//		} else {
+//			Debug.Log ("width is smaller: " + boxes);
+//		}
+//
+//
+//
+//
+//		this.castRays ();
 	}
 
-	private void castRays(){
+	private void castRays () {
 
 		float angleSlice = this.ConeAngle / this.NumRays;
 
 		for (int i = 0; i < sinCos.GetLength (0); i++) {
 
-			Vector3 rayPoint = this.transform.TransformPoint (new Vector3 (sinCos [i, 0], sinCos [i, 1], 0));
+			Vector3 sinCosPoint = this.transform.TransformPoint (new Vector3 (sinCos [i, 0], sinCos [i, 1], 0));
 
-			Vector3 rayDirection = (rayPoint - this.transform.position).normalized;
+			Vector3 rayDirection = (sinCosPoint - this.transform.position).normalized;
+
+			Vector3 rayPoint = this.transform.position + (rayDirection * this.ConeDistance);
 
 			float nextAngle = ((angleSlice * (i + 1)) - (this.ConeAngle / 2));
 
 			RaycastHit2D[] rayHits = Physics2D.RaycastAll (this.transform.position, rayDirection, this.ConeAngle, this.collisionLayer);
-			Debug.DrawLine (this.transform.position,this.transform.parent.TransformPoint( rayPoint * ConeDistance), Color.cyan);
+			Debug.DrawLine (this.transform.position, rayPoint, Color.cyan);
 		}
-	}
-
-	private void updateBox(){
-
-		float right = Mathf.Tan ((this.ConeAngle / 2) * Mathf.Deg2Rad) * this.coneDistance;
-		this.topRightPoint = new Vector3 (right, this.coneDistance, 0);
-		this.bottomLeftPoint = new Vector3 (-right, 0, 0);
 	}
 
 	private void updateSinCos (float viewAngle, int numRays) {
@@ -99,7 +97,6 @@ public class ConeOFFire : MonoBehaviour {
 		set {
 			coneAngle = value;
 			updateSinCos (this.coneAngle, this.NumRays);
-			updateBox ();
 		}
 	}
 
@@ -119,7 +116,6 @@ public class ConeOFFire : MonoBehaviour {
 		}
 		set {
 			coneDistance = value;
-			updateBox ();
 		}
 	}
 }
